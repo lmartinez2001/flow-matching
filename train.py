@@ -32,10 +32,10 @@ def train(model, loader, optimizer, epochs):
 
 
 if __name__ == "__main__":
-    from dataset import make_dataset
-    from torch.optim import AdamW
-    from torch.utils.data import DataLoader
     from model import MLP
+    from torch.optim import AdamW
+    from dataset import make_dataset
+    from torch.utils.data import DataLoader
 
     lr = 1e-4
     n_samples = 1024 * 8
@@ -48,6 +48,7 @@ if __name__ == "__main__":
     n_layers = 5
 
     output_root = "out"
+    os.makedirs(output_root, exist_ok=True)
 
     dataset = make_dataset(n_samples=n_samples, noise=0.01)
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)

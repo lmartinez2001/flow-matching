@@ -86,17 +86,29 @@ def generate_animation(
 
         # Plot vector field
         u, v, magnitude = vector_fields[frame]
-        ax1.quiver(xx, yy, u, v, magnitude, cmap="coolwarm", alpha=0.5)
+        ax1.quiver(
+            xx,
+            yy,
+            u,
+            v,
+            magnitude,
+            angles="xy",
+            scale_units="xy",
+            cmap="coolwarm",
+            alpha=0.8,
+            width=0.005,
+        )
 
         # Plot flow map
         sample = samples[frame].numpy()
         ax2.hist2d(*sample.T, cmap="viridis", bins=300, range=[(-3, 3), (-3, 3)])
 
+    plt.subplots_adjust(
+        left=0.02, right=0.98, top=0.95, bottom=0.05, wspace=0.1, hspace=0.05
+    )
     # Create animation
     print("Creating animation (this may take a while as well)")
-    anim = animation.FuncAnimation(
-        fig, animate, frames=n_timesteps, interval=120, blit=False, repeat=True
-    )
+    anim = animation.FuncAnimation(fig, animate, frames=n_timesteps)
 
     # Save as gif
     gif_path = os.path.join(output_root, "flow_matching.gif")
@@ -111,6 +123,6 @@ if __name__ == "__main__":
         checkpoint_path="out/model.pth",
         output_root="out/animations",
         n_timesteps=100,
-        grid_resolution=20,
-        n_samples=20_000,
+        grid_resolution=15,
+        n_samples=500_000,
     )
