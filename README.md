@@ -1,7 +1,7 @@
 # Flow Matching
 
 <div align="center">
-  <img src="out/animations/flow_matching.gif" alt="Flow Matching Evolution" width="100%" />
+  <img src="teaser.gif" alt="Flow Matching Evolution" width="100%" />
 </div>
 
 ## Setup

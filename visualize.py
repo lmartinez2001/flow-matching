@@ -32,9 +32,10 @@ def generate_animation(
 
     all_t = torch.linspace(0, 1, n_timesteps)
 
+    bounds = (-4, 4)
     # Prepare grid for vector field
-    x = np.linspace(-3, 3, grid_resolution)
-    y = np.linspace(-3, 3, grid_resolution)
+    x = np.linspace(*bounds, grid_resolution)
+    y = np.linspace(*bounds, grid_resolution)
     xx, yy = np.meshgrid(x, y)
     grid = np.stack([xx, yy], axis=-1).reshape(-1, 2)
     grid = torch.tensor(grid, dtype=torch.float32)
@@ -58,25 +59,25 @@ def generate_animation(
     # Set up the figure and axis
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
 
-    ax1.set_xlim(-3, 3)
-    ax1.set_ylim(-3, 3)
+    ax1.set_xlim(*bounds)
+    ax1.set_ylim(*bounds)
     ax1.axis("off")
 
-    ax2.set_xlim(-3, 3)
-    ax2.set_ylim(-3, 3)
+    ax2.set_xlim(*bounds)
+    ax2.set_ylim(*bounds)
     ax2.axis("off")
 
     def animate(frame):
         ax1.clear()
         ax2.clear()
 
-        ax1.set_xlim(-3, 3)
-        ax1.set_ylim(-3, 3)
+        ax1.set_xlim(*bounds)
+        ax1.set_ylim(*bounds)
         ax1.axis("off")
         ax1.set_title("Vector field", fontsize=16)
 
-        ax2.set_xlim(-3, 3)
-        ax2.set_ylim(-3, 3)
+        ax2.set_xlim(*bounds)
+        ax2.set_ylim(*bounds)
         ax2.axis("off")
         ax2.set_title("Flow map", fontsize=16)
 
@@ -101,7 +102,7 @@ def generate_animation(
 
         # Plot flow map
         sample = samples[frame].numpy()
-        ax2.hist2d(*sample.T, cmap="viridis", bins=300, range=[(-3, 3), (-3, 3)])
+        ax2.hist2d(*sample.T, cmap="viridis", bins=300, range=[bounds, bounds])
 
     plt.subplots_adjust(
         left=0.02, right=0.98, top=0.95, bottom=0.05, wspace=0.1, hspace=0.05
@@ -124,5 +125,5 @@ if __name__ == "__main__":
         output_root="out/animations",
         n_timesteps=100,
         grid_resolution=15,
-        n_samples=500_000,
+        n_samples=100_000,
     )
