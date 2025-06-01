@@ -3,27 +3,11 @@ import torch
 import numpy as np
 from model import MLP
 from tqdm import tqdm
-import imageio.v3 as iio
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 
-def make_gif(root: str, save: str, duration: int, loop: int = 0):
-    imgs = []
-    img_names = os.listdir(root)
-    img_names = sorted(img_names)
-    for img_name in img_names:
-        img_path = os.path.join(root, img_name)
-        imgs.append(iio.imread(img_path))
-
-    if imgs:
-        last_img = imgs[-1]
-        for _ in range(15):
-            imgs.append(last_img)
-    iio.imwrite(save, imgs, duration=duration, loop=loop)
-    print(f"Gif saved at {save}")
-
-
-def generate_gifs(
+def generate_animation(
     checkpoint_path: str,
     output_root: str,
     n_timesteps: int,
@@ -35,8 +19,7 @@ def generate_gifs(
     output_size = 2  # v_t (2)
     n_layers = 5
 
-    os.makedirs(f"{output_root}/vf", exist_ok=True)
-    os.makedirs(f"{output_root}/fm", exist_ok=True)
+    os.makedirs(output_root, exist_ok=True)
 
     model = MLP(
         input_size=input_size,
@@ -49,66 +32,85 @@ def generate_gifs(
 
     all_t = torch.linspace(0, 1, n_timesteps)
 
-    # ==> Generate vector field
+    # Prepare grid for vector field
     x = np.linspace(-3, 3, grid_resolution)
     y = np.linspace(-3, 3, grid_resolution)
     xx, yy = np.meshgrid(x, y)
     grid = np.stack([xx, yy], axis=-1).reshape(-1, 2)
     grid = torch.tensor(grid, dtype=torch.float32)
 
+    # Pre-compute vector fields
+    print("Computing vector fields...")
+    vector_fields = []
     for idx, t in tqdm(
         enumerate(all_t), desc="Computing vector field", total=n_timesteps
     ):
         vfield = model.vector_field(t, grid)
-
         vf = vfield.reshape(grid_resolution, grid_resolution, 2)
         u = vf[:, :, 0].detach().numpy()
         v = vf[:, :, 1].detach().numpy()
         magnitude = np.sqrt(u**2 + v**2)
-        plt.figure(figsize=(10, 10))
-        plt.title(f"Vector field (t={t:.2f})")
-        plt.quiver(xx, yy, u, v, magnitude, cmap="viridis", alpha=0.5)
-        plt.xlim(-3, 3)
-        plt.ylim(-3, 3)
-        plt.axis("off")
-        plt.savefig(
-            os.path.join(output_root, "vf", f"vf_{idx:04d}.png"),
-            dpi=300,
-            bbox_inches="tight",
-        )
-        plt.close()
+        vector_fields.append((u, v, magnitude))
 
-    print("Computing flow map")
+    print("Computing flow map (this may take a while)")
     samples = model.sample(n_samples, n_timesteps)
-    for idx in tqdm(range(n_timesteps), desc="Saving frames"):
-        sample = samples[idx].numpy()
-        time = all_t[idx].item()
-        plt.figure(figsize=(10, 10), facecolor="black")
-        plt.title(f"Distribution (t={time:.2f})", color="white")
-        plt.gca().set_facecolor("black")
-        plt.scatter(*sample.T, s=1, alpha=0.5, c="white", marker=".")
-        plt.xlim(-3, 3)
-        plt.ylim(-3, 3)
-        plt.axis("off")
-        plt.savefig(
-            os.path.join(output_root, "fm", f"fm_{idx:04d}.png"),
-            dpi=300,
-            bbox_inches="tight",
-            facecolor="black",
-        )
-        plt.close()
 
-    print("Generating gifs")
-    gif_duration = 120
-    make_gif(os.path.join(output_root, "vf"), "res/vf.gif", gif_duration)
-    make_gif(os.path.join(output_root, "fm"), "res/fm.gif", gif_duration)
+    # Set up the figure and axis
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
+
+    ax1.set_xlim(-3, 3)
+    ax1.set_ylim(-3, 3)
+    ax1.axis("off")
+
+    ax2.set_xlim(-3, 3)
+    ax2.set_ylim(-3, 3)
+    ax2.axis("off")
+
+    def animate(frame):
+        ax1.clear()
+        ax2.clear()
+
+        ax1.set_xlim(-3, 3)
+        ax1.set_ylim(-3, 3)
+        ax1.axis("off")
+        ax1.set_title("Vector field", fontsize=16)
+
+        ax2.set_xlim(-3, 3)
+        ax2.set_ylim(-3, 3)
+        ax2.axis("off")
+        ax2.set_title("Flow map", fontsize=16)
+
+        # Get current time
+        time = all_t[frame].item()
+        fig.suptitle(f"t={time:.2f}", fontsize=18)
+
+        # Plot vector field
+        u, v, magnitude = vector_fields[frame]
+        ax1.quiver(xx, yy, u, v, magnitude, cmap="coolwarm", alpha=0.5)
+
+        # Plot flow map
+        sample = samples[frame].numpy()
+        ax2.hist2d(*sample.T, cmap="viridis", bins=300, range=[(-3, 3), (-3, 3)])
+
+    # Create animation
+    print("Creating animation (this may take a while as well)")
+    anim = animation.FuncAnimation(
+        fig, animate, frames=n_timesteps, interval=120, blit=False, repeat=True
+    )
+
+    # Save as gif
+    gif_path = os.path.join(output_root, "flow_matching.gif")
+    anim.save(gif_path, writer="pillow", fps=20, dpi=300)
+    print(f"Animation saved at {gif_path}")
+
+    plt.show()
 
 
 if __name__ == "__main__":
-    generate_gifs(
+    generate_animation(
         checkpoint_path="out/model.pth",
-        output_root="out/gifs",
+        output_root="out/animations",
         n_timesteps=100,
-        grid_resolution=30,
-        n_samples=50_000,
+        grid_resolution=20,
+        n_samples=20_000,
     )

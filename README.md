@@ -1,8 +1,7 @@
 # Flow Matching
 
 <div align="center">
-  <img src="res/vf.gif" alt="Vector Field Evolution" width="45%" />
-  <img src="res/fm.gif" alt="Flow Matching Evolution" width="45%" />
+  <img src="out/animations/flow_matching.gif" alt="Flow Matching Evolution" width="100%" />
 </div>
 
 ## Setup
