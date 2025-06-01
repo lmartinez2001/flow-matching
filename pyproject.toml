@@ -1,0 +1,28 @@
+[project]
+name = "flow-matching"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "imageio>=2.37.0",
+  "matplotlib>=3.10.3",
+  "numpy>=2.2.6",
+  "scikit-learn>=1.6.1",
+  "torch>=2.7.0",
+  "torchdiffeq>=0.2.5",
+  "tqdm>=4.67.1",
+]
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cpu" },
+]
+torchvision = [
+  { index = "pytorch-cpu" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
