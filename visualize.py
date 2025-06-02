@@ -59,31 +59,21 @@ def generate_animation(
     # Set up the figure and axis
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
 
-    ax1.set_xlim(*bounds)
-    ax1.set_ylim(*bounds)
-    ax1.axis("off")
-
-    ax2.set_xlim(*bounds)
-    ax2.set_ylim(*bounds)
-    ax2.axis("off")
-
     def animate(frame):
         ax1.clear()
         ax2.clear()
 
+        time = all_t[frame].item()
+
         ax1.set_xlim(*bounds)
         ax1.set_ylim(*bounds)
         ax1.axis("off")
-        ax1.set_title("Vector field", fontsize=16)
+        ax1.set_title(f"Vector field (t = {time:.2f})", fontsize=18)
 
         ax2.set_xlim(*bounds)
         ax2.set_ylim(*bounds)
         ax2.axis("off")
-        ax2.set_title("Flow map", fontsize=16)
-
-        # Get current time
-        time = all_t[frame].item()
-        fig.suptitle(f"t={time:.2f}", fontsize=18)
+        ax2.set_title(f"Flow map (t = {time:.2f})", fontsize=18)
 
         # Plot vector field
         u, v, magnitude = vector_fields[frame]
@@ -104,16 +94,14 @@ def generate_animation(
         sample = samples[frame].numpy()
         ax2.hist2d(*sample.T, cmap="viridis", bins=300, range=[bounds, bounds])
 
-    plt.subplots_adjust(
-        left=0.02, right=0.98, top=0.95, bottom=0.05, wspace=0.1, hspace=0.05
-    )
+    plt.subplots_adjust(left=0.02, right=0.98, top=0.95, bottom=0.05, wspace=0.1)
     # Create animation
     print("Creating animation (this may take a while as well)")
-    anim = animation.FuncAnimation(fig, animate, frames=n_timesteps)
+    anim = animation.FuncAnimation(fig, animate, frames=n_timesteps, interval=50)
 
     # Save as gif
     gif_path = os.path.join(output_root, "flow_matching.gif")
-    anim.save(gif_path, writer="pillow", fps=20, dpi=300)
+    anim.save(gif_path, writer="pillow")
     print(f"Animation saved at {gif_path}")
 
     plt.show()
@@ -123,7 +111,7 @@ if __name__ == "__main__":
     generate_animation(
         checkpoint_path="out/model.pth",
         output_root="out/animations",
-        n_timesteps=100,
+        n_timesteps=101,
         grid_resolution=15,
-        n_samples=100_000,
+        n_samples=200_000,
     )

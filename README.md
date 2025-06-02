@@ -6,7 +6,7 @@
 
 ## Setup
 
-This project uses [uv](https://github.com/astral-sh/uv) for dependency management.
+This project uses [uv](https://github.com/astral-sh/uv).
 
 1. Clone the repository:
 ```bash
@@ -52,7 +52,7 @@ uv run visualize.py
 This will generate:
 - Vector field visualizations showing the learned flow at different time steps
 - Flow evolution animations showing how samples are transported from noise to data
-- GIFs saved to `res/vf.gif` (vector fields) and `res/fm.gif` (flow evolution)
+- GIF saved to `out/animations/flow_matching.gif`
 
 
 ## References
